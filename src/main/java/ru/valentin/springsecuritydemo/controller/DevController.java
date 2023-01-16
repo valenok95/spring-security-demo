@@ -1,5 +1,8 @@
 package ru.valentin.springsecuritydemo.controller;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.web.bind.annotation.*;
 import ru.valentin.springsecuritydemo.model.Developer;
 
@@ -19,11 +22,13 @@ public class DevController {
           .collect(Collectors.toList());
 
   @GetMapping
+  @PreAuthorize("hasAuthority('developers:read')")
   public List<Developer> getAll() {
     return DEVELOPERS;
   }
 
   @GetMapping("/{id}")
+  @PreAuthorize("hasAuthority('developers:read')")
   public Developer getById(@PathVariable Long id) {
     return DEVELOPERS.stream()
         .filter(dev -> Objects.equals(id, dev.getId()))
@@ -32,11 +37,13 @@ public class DevController {
   }
 
   @DeleteMapping("/{id}")
+  @PreAuthorize("hasAuthority('developers:write')")
   public void deleteById(@PathVariable Long id) {
     DEVELOPERS.removeIf(dev -> Objects.equals(id, dev.getId()));
   }
 
   @PostMapping
+  @PreAuthorize("hasAuthority('developers:write')")
   public Developer create(@RequestBody Developer developer) {
     DEVELOPERS.add(developer);
     return developer;

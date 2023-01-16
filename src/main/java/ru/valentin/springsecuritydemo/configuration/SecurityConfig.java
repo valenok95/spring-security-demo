@@ -2,9 +2,9 @@ package ru.valentin.springsecuritydemo.configuration;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.userdetails.User;
@@ -16,6 +16,7 @@ import ru.valentin.springsecuritydemo.model.Role;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
 
   @Bean
@@ -24,12 +25,12 @@ public class SecurityConfig {
     manager.createUser(
         User.withUsername("user")
             .password(bCryptPasswordEncoder().encode("user"))
-            .roles("USER")
+            .authorities(Role.USER.getAuthorities())
             .build());
     manager.createUser(
         User.withUsername("admin")
             .password(bCryptPasswordEncoder().encode("admin"))
-            .roles("USER", "ADMIN")
+            .authorities(Role.ADMIN.getAuthorities())
             .build());
     return manager;
   }
@@ -41,14 +42,13 @@ public class SecurityConfig {
         .authorizeHttpRequests()
         .requestMatchers("/")
         .permitAll()
-        .requestMatchers(HttpMethod.GET, "/api/**")
-        .hasAnyRole(Role.USER.name(), Role.ADMIN.name())
-        .requestMatchers(HttpMethod.POST, "/api/**")
-        .hasRole(Role.ADMIN.name())
-        .requestMatchers(HttpMethod.DELETE, "/api/**")
-        .hasRole(Role.ADMIN.name())
+        .anyRequest()
+        .authenticated()
         .and()
-        .httpBasic();
+        .formLogin()
+        .loginPage("/auth/login")
+        .permitAll()
+        .defaultSuccessUrl("/success");
     return http.build();
   }
 
